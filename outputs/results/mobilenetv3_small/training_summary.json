@@ -1,0 +1,53 @@
+{
+    "project": {
+        "name": "audio_deepfake_detection",
+        "task": "binary_classification",
+        "model_family": "mobilenetv3",
+        "model_name": "mobilenetv3_small",
+        "experiment_name": "mobilenetv3_small_128x128x3_imagenet",
+        "seed": 42,
+        "description": "MobileNetV3-Small pretrained ImageNet for audio deepfake detection using precomputed Log-Mel image features."
+    },
+    "model": {
+        "name": "MobileNetV3Small_LogMel_AudioDeepfake",
+        "input_shape": "(None, 128, 128, 3)",
+        "output_shape": "(None, 1)",
+        "total_params": 638713,
+        "trainable_params": 55553,
+        "non_trainable_params": 583160
+    },
+    "data": {
+        "train_samples": 25380,
+        "dev_samples": 24844,
+        "train_label_counts": {
+            "0": 2580,
+            "1": 22800
+        },
+        "dev_label_counts": {
+            "0": 2548,
+            "1": 22296
+        }
+    },
+    "training": {
+        "debug": false,
+        "training_time_seconds": 4504.8811547756195,
+        "training_time_minutes": 75.08135257959366,
+        "history_keys": [
+            "accuracy",
+            "loss",
+            "roc_auc",
+            "val_accuracy",
+            "val_loss",
+            "val_roc_auc",
+            "learning_rate"
+        ]
+    },
+    "files": {
+        "best_checkpoint": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\checkpoints\\mobilenetv3_small\\best_mobilenetv3_small.keras",
+        "final_model": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\saved_models\\mobilenetv3_small\\mobilenetv3_small_final.keras",
+        "training_history": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\mobilenetv3_small\\training_history.json",
+        "training_summary": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\mobilenetv3_small\\training_summary.json",
+        "model_summary": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\mobilenetv3_small\\model_summary.txt",
+        "config_snapshot": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\mobilenetv3_small\\config_snapshot.yaml"
+    }
+}

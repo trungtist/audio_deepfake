@@ -1,0 +1,79 @@
+{
+    "project": {
+        "name": "audio_deepfake_detection",
+        "task": "binary_classification",
+        "model_family": "cnn",
+        "model_name": "cnn_v2",
+        "experiment_name": "cnn_v2_medium_logmel_64_4s",
+        "seed": 42,
+        "description": "CNN v2 medium model for audio deepfake detection using Log-Mel Spectrogram."
+    },
+    "model_name": "CNN_V2_Medium_LogMel_AudioDeepfake",
+    "input_shape": [
+        64,
+        251,
+        1
+    ],
+    "output_shape": [
+        1
+    ],
+    "total_params": 455329,
+    "trainable_params": 454369,
+    "non_trainable_params": 960,
+    "estimated_fp32_size_mb": 1.7369422912597656,
+    "train_samples": 1000,
+    "dev_samples": 500,
+    "train_label_counts": {
+        "0": 500,
+        "1": 500
+    },
+    "dev_label_counts": {
+        "0": 51,
+        "1": 449
+    },
+    "class_weight": {
+        "0": 1.0,
+        "1": 1.0
+    },
+    "training_time_seconds": 79.86321997642517,
+    "training_time_minutes": 1.3310536662737529,
+    "best_checkpoint_path": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\checkpoints\\cnn_v2\\best_cnn_v2.keras",
+    "final_model_path": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\saved_models\\cnn_v2\\cnn_baseline_final.keras",
+    "history": {
+        "accuracy": [
+            0.6430000066757202,
+            0.7519999742507935,
+            0.8029999732971191
+        ],
+        "loss": [
+            0.6296753883361816,
+            0.4943753182888031,
+            0.44338372349739075
+        ],
+        "roc_auc": [
+            0.6989099979400635,
+            0.833914041519165,
+            0.8682299852371216
+        ],
+        "val_accuracy": [
+            0.8019999861717224,
+            0.7760000228881836,
+            0.6959999799728394
+        ],
+        "val_loss": [
+            0.423042356967926,
+            0.4517916142940521,
+            0.6690999865531921
+        ],
+        "val_roc_auc": [
+            0.6094807982444763,
+            0.832743763923645,
+            0.8988820314407349
+        ],
+        "learning_rate": [
+            0.0005000000237487257,
+            0.0005000000237487257,
+            0.0005000000237487257
+        ]
+    }
+}

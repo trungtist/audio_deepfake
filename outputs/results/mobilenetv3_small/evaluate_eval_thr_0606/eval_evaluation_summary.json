@@ -1,0 +1,39 @@
+{
+    "project": {
+        "name": "audio_deepfake_detection",
+        "task": "binary_classification",
+        "model_family": "mobilenetv3",
+        "model_name": "mobilenetv3_small",
+        "experiment_name": "mobilenetv3_small_128x128x3_imagenet",
+        "seed": 42,
+        "description": "MobileNetV3-Small pretrained ImageNet for audio deepfake detection using precomputed Log-Mel image features."
+    },
+    "split": "eval",
+    "model_path": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\checkpoints\\mobilenetv3_small\\best_mobilenetv3_small.keras",
+    "output_dir": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\mobilenetv3_small\\evaluate_eval_thr_0606",
+    "metrics": {
+        "accuracy": 0.9009643864845516,
+        "precision": 0.930553240495204,
+        "recall": 0.961303653611346,
+        "f1_score": 0.9456785370548605,
+        "roc_auc": 0.9248091096153639,
+        "eer": 0.1459531872699263,
+        "eer_threshold": 0.8957744240760803,
+        "threshold": 0.606,
+        "num_samples": 71237,
+        "label_counts": {
+            "0": 7355,
+            "1": 63882
+        },
+        "prediction_counts": {
+            "0": 5244,
+            "1": 65993
+        }
+    },
+    "files": {
+        "predictions_csv": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\mobilenetv3_small\\evaluate_eval_thr_0606\\eval_predictions.csv",
+        "confusion_matrix_png": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\mobilenetv3_small\\evaluate_eval_thr_0606\\eval_confusion_matrix.png",
+        "roc_curve_png": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\mobilenetv3_small\\evaluate_eval_thr_0606\\eval_roc_curve.png",
+        "metrics_json": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\mobilenetv3_small\\evaluate_eval_thr_0606\\eval_metrics.json"
+    }
+}

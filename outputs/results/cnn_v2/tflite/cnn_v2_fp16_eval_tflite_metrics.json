@@ -1,0 +1,51 @@
+{
+  "threshold_used": 0.869,
+  "accuracy": 0.9050212670381964,
+  "precision": 0.973614381903214,
+  "recall": 0.9189912651451113,
+  "f1": 0.9455145756160412,
+  "roc_auc": 0.9487019181418597,
+  "eer": 0.11032025268546736,
+  "eer_threshold": 0.9348230957984924,
+  "best_f1": 0.9523861012210474,
+  "best_f1_threshold": 0.6495941001599654,
+  "best_youden_threshold": 0.9797389507293701,
+  "best_youden_j": 0.8153029897003123,
+  "confusion_matrix": [
+    [
+      5764,
+      1591
+    ],
+    [
+      5175,
+      58707
+    ]
+  ],
+  "pred_counts": {
+    "bonafide_0": 10939,
+    "spoof_1": 60298
+  },
+  "label_counts": {
+    "bonafide_0": 7355,
+    "spoof_1": 63882
+  },
+  "score_stats": {
+    "min": 0.0033961893059313297,
+    "max": 1.0,
+    "mean": 0.9315522909164429,
+    "std": 0.16712231934070587
+  },
+  "tflite_size_mb": 0.8746,
+  "num_samples": 71237,
+  "total_time_sec_including_io": 1127.8930398999946,
+  "total_inference_time_sec": 403.7352195006097,
+  "avg_inference_ms_per_sample": 5.667493290012349,
+  "avg_total_ms_per_sample_including_io": 15.83296657495395,
+  "batch_size": 16,
+  "num_threads": 1,
+  "tflite_path": "outputs\\tflite\\cnn_v2\\cnn_v2_fp16.tflite",
+  "metadata_path": "data\\metadata\\eval.csv",
+  "config_path": "configs\\cnn_v2.yaml",
+  "split": "eval",
+  "format": "fp16"
+}

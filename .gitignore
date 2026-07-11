@@ -1,0 +1,31 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache and byte-code
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE and Editor configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Project specific data and outputs
+data/raw/
+data/processed/
+data/zip/
+outputs/checkpoints/
+outputs/saved_models/
+outputs/tflite/
+outputs/logs/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints

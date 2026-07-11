@@ -1,0 +1,274 @@
+active env: .venv\Scripts\activate
+
+1. Viết requirements.txt
+2. Viết config cnn_baseline.yaml
+3. Viết .gitignore
+4. Viết make_metadata.py
+5. Viết logmel.py
+6. Viết cnn_baseline.py
+7. Viết dataset_loader.py
+8. Viết callback.py
+9. Viết train_cnn.py
+10. Viết evaluate.py
+11. Viết convert_to_tflite.py
+12. Viết evaluate_tflite.py
+
+=========================================================================================================================
+
+1. Pipeline tổng CNN baseline
+
+Luồng tổng thể của CNN hiện tại là:
+
+ASVspoof2019 LA dataset
+        ↓
+01. Prepare metadata
+        ↓
+02. Extract Log-Mel Spectrogram
+        ↓
+03. Validate dataset / dataloader
+        ↓
+04. Build CNN baseline
+        ↓
+05. Train CNN baseline
+        ↓
+06. Evaluate CNN baseline
+        ↓
+07. Export model for deployment
+
+Cụ thể hơn:
+
+Audio .flac
+        ↓
+Protocol txt
+        ↓
+metadata CSV
+        ↓
+Log-Mel .npy
+        ↓
+tf.data.Dataset
+        ↓
+CNN baseline / MobileNetV3-Small
+        ↓
+best_cnn_baseline.keras
+        ↓
+metrics / confusion matrix / ROC curve
+        ↓
+TFLite / ONNX
+
+=========================================================================================================================
+
+Pipeline CNN baseline của bạn là:
+
+data/raw/
+    ↓
+src/data/make_metadata.py
+    ↓
+data/metadata/*.csv
+    ↓
+src/features/logmel.py
+    ↓
+data/processed/logmel_64_4s/*.npy
+    ↓
+src/data/dataset_loader.py
+    ↓
+tf.data.Dataset
+    ↓
+src/models/cnn_baseline.py
+    ↓
+src/training/train_cnn.py
+    ↓
+outputs/checkpoints/cnn_baseline/best_cnn_baseline.keras
+    ↓
+src/evaluation/evaluate.py
+    ↓
+outputs/results/cnn_baseline/evaluate_dev hoặc evaluate_eval
+    ↓
+src/deployment/export_tflite.py
+    ↓
+outputs/tflite/cnn_baseline/*.tflite
+
+=========================================================================================================================
+logmel.py cần thư viện:
+librosa
+soundfile
+numpy
+pandas
+pyyaml
+tqdm
+
+- debug 100 samples: python -m src.features.logmel --config configs/cnn_baseline.yaml --split train --max-samples 100
+- check shape 1 file .npy: python -c "import numpy as np, glob; f=glob.glob('data/processed/logmel_64_4s/train/*.npy')[0]; x=np.load(f); print(f); print(x.shape); print(x.dtype)"
+- extract full: py -m src.features.logmel --config configs/cnn_baseline.yaml --split all
+
+=========================================================================================================================
+
+cnn_baseline.py:
+python -m src.models.cnn_baseline --config configs/cnn_baseline.yaml --summary --compile
+
+=========================================================================================================================
+
+dataset_loader.py có vai trò chuẩn bị dữ liệu đúng định dạng để đưa vào model train => Biến dữ liệu đã xử lý thành dạng TensorFlow có thể train được.
+
+kiểm tra dataloader cho tập dev: py -m src.data.dataset_loader --config configs/cnn_baseline.yaml --split dev --max-samples 32
+check full train: py -m src.data.dataset_loader --config configs/cnn_baseline.yaml --split train --validate-files
+
+Sau khi bạn chạy make_metadata.py, bạn có:
+
+data/metadata/train.csv
+data/metadata/dev.csv
+data/metadata/eval.csv
+
+Trong mỗi file CSV có dạng:
+
+utt_id, feature_path, label
+LA_T_xxxxx, data/processed/logmel_64_4s/train/LA_T_xxxxx.npy, 1
+LA_T_yyyyy, data/processed/logmel_64_4s/train/LA_T_yyyyy.npy, 0
+
+Sau khi bạn chạy logmel.py, bạn có nhiều file .npy:
+
+data/processed/logmel_64_4s/train/LA_T_xxxxx.npy
+data/processed/logmel_64_4s/train/LA_T_yyyyy.npy
+...
+
+Mỗi file .npy là một ảnh Log-Mel:
+
+(64, 251)
+
+Nhưng CNN cần input dạng:
+
+(64, 251, 1)
+
+Vậy cần có một bước đứng giữa để đọc .npy, thêm chiều kênh, ghép thành batch và đưa vào model. Đó chính là dataset_loader.py.
+
+==========================================================================================================================
+
+callback.py
+
+py -m src.training.callbacks --config configs/cnn_baseline.yaml
+
+callbacks.py không train model trực tiếp. Nó chứa các “hành động phụ” được Keras gọi trong quá trình train.
+
+Khi chạy model.fit(), callbacks sẽ tự động làm các việc như:
+
+Sau mỗi epoch:
+→ kiểm tra val_roc_auc
+→ nếu model tốt hơn thì lưu checkpoint
+→ nếu model không cải thiện nhiều epoch thì dừng sớm
+→ nếu val_loss không giảm thì giảm learning rate
+→ ghi log train vào file CSV
+
+==========================================================================================================================
+
+train_cnn.py là file huấn luyện mô hình CNN baseline.
+
+Các file trước đó chỉ chuẩn bị từng phần:
+
+make_metadata.py      → tạo train.csv/dev.csv/eval.csv
+logmel.py             → tạo feature .npy
+dataset_loader.py     → load .npy thành tf.data.Dataset
+cnn_baseline.py       → định nghĩa kiến trúc CNN
+callbacks.py          → tạo checkpoint, early stopping, logger
+train_cnn.py          → ghép tất cả lại và train model
+
+==> train_cnn.py = file chính để bắt đầu huấn luyện CNN baseline.
+
+Sau khi chạy train_cnn.py, project mới sinh ra model thật trong:
+
+outputs/checkpoints/cnn_baseline/best_cnn_baseline.keras
+outputs/saved_models/cnn_baseline/cnn_baseline_final.keras
+outputs/logs/cnn_baseline/training_log.csv
+
+
+Cú pháp train:
+
+py -m src.training.train_cnn --config configs/cnn_baseline.yaml
+
+
+==========================================================================================================================
+
+evaluate\metrics.py: File này dùng để tính các chỉ số đánh giá mô hình sau khi model đã predict xong.
+
+Cụ thể, sau này evaluate.py sẽ làm:
+
+Load model
+→ Load dev/eval dataset
+→ model.predict()
+→ thu được y_true và y_score
+→ gọi metrics.py để tính kết quả
+
+metrics.py sẽ tính:
+
+Accuracy
+Precision
+Recall
+F1-score
+ROC-AUC
+EER
+Confusion Matrix
+Classification Report
+Best threshold theo F1
+Best threshold theo Youden's J
+
+Nói ngắn gọn:
+
+metrics.py = nơi tính toán chỉ số đánh giá mô hình
+evaluate.py = nơi load model, predict, gọi metrics.py và lưu kết quả
+
+py -m src.evaluation.metrics
+
+
+
+==================================================================================================================================
+3. Evaluate full eval để làm gì?
+
+python -m src.evaluation.evaluate --config configs/mobilenetv3_small.yaml --split dev --threshold 0.864 --output-dir outputs/results/mobilenetv3_small/evaluate_dev_finetuned_thr_0864
+
+Sau khi chọn threshold từ dev, bạn dùng threshold đó để evaluate trên eval.
+
+Quy trình chuẩn là:
+
+Train trên train
+Theo dõi/chọn model bằng dev
+Chọn threshold bằng dev
+Đánh giá cuối cùng trên eval
+
+Train xong → model có trọng số mới
+Evaluate full dev → biết model mới tốt đến đâu và chọn threshold
+Evaluate full eval → lấy kết quả cuối cùng để báo cáo
+
+Ví dụ CNN của bạn:
+
+Dev chọn threshold = 0.956
+Eval chạy với threshold = 0.956
+
+Khi đó kết quả eval mới có giá trị báo cáo cuối.
+
+==================================================================================================================================
+
+
+python -m src.data.dataset_loader --config configs/cnn_v2.yaml --split train --validate-files
+python -m src.data.dataset_loader --config configs/cnn_v2.yaml --split dev --validate-files
+python -m src.data.dataset_loader --config configs/cnn_v2.yaml --split eval --validate-files
+python -m src.models.cnn_baseline --config configs/cnn_v2.yaml --summary --compile --batch-size 8
+python -m src.training.train_cnn --config configs/cnn_v2.yaml
+python -m src.evaluation.evaluate --config configs/cnn_v2.yaml --split dev --threshold 0.956000 --output-dir outputs/results/cnn_v2/evaluate_dev_thr_0956
+python -m src.deployment.evaluate_tflite --config configs/cnn_v2.yaml --split eval --format fp16 --threshold 0.869
+python -m src.deployment.export_tflite --config configs/cnn_v2.yaml --formats fp32 fp16
+python -m src.deployment.evaluate_tflite --config configs/cnn_v2.yaml --split eval --format fp32
+python -m src.deployment.evaluate_tflite --config configs/cnn_v2.yaml --split eval --format fp16
+python -m src.deployment.evaluate_tflite --config configs/cnn_v2.yaml --split eval --format dynamic
+Chạy lại python -m src.evaluation.evaluate --config configs/cnn_v2.yaml --split eval --threshold 0.869
+
+
+python -m src.data.dataset_loader --config configs/mobilenetv3_small.yaml --split train --validate-files
+python -m src.data.dataset_loader --config configs/mobilenetv3_small.yaml --split dev --validate-files
+python -m src.data.dataset_loader --config configs/mobilenetv3_small.yaml --split eval --validate-files
+python -m src.models.mobilenetv3_small --config configs/mobilenetv3_small.yaml --summary --compile --batch-size 8
+python -m src.training.train_mobilenetv3_small --config configs/mobilenetv3_small.yaml
+python -m src.evaluation.evaluate --config configs/mobilenetv3_small.yaml --split dev --threshold 0.606 --output-dir outputs/results/mobilenetv3_small/evaluate_dev_thr_0606
+python -m src.deployment.evaluate_tflite --config configs/mobilenetv3_small.yaml --split eval --format fp16 --threshold 0.606
+python -m src.deployment.export_tflite --config configs/mobilenetv3_small.yaml --formats fp32 fp16
+python -m src.deployment.evaluate_tflite --config configs/mobilenetv3_small.yaml --split eval --format fp32
+python -m src.deployment.evaluate_tflite --config configs/mobilenetv3_small.yaml --split eval --format fp16
+python -m src.deployment.evaluate_tflite --config configs/mobilenetv3_small.yaml --split eval --format dynamic
+Chạy lại python -m src.evaluation.evaluate --config configs/mobilenetv3_small.yaml --split eval --threshold 0.606

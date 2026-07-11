@@ -1,0 +1,223 @@
+project:
+  name: audio_deepfake_detection
+  task: binary_classification
+  model_family: cnn
+  model_name: cnn_v2
+  experiment_name: cnn_v2_medium_logmel_64_4s
+  seed: 42
+  description: CNN v2 medium model for audio deepfake detection using Log-Mel Spectrogram.
+paths:
+  data_root: data/raw/ASVspoof2019_LA
+  protocol_dir: data/raw/ASVspoof2019_LA/ASVspoof2019_LA_cm_protocols
+  train_audio_dir: data/raw/ASVspoof2019_LA/ASVspoof2019_LA_train/flac
+  dev_audio_dir: data/raw/ASVspoof2019_LA/ASVspoof2019_LA_dev/flac
+  eval_audio_dir: data/raw/ASVspoof2019_LA/ASVspoof2019_LA_eval/flac
+  train_protocol: data/raw/ASVspoof2019_LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt
+  dev_protocol: data/raw/ASVspoof2019_LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt
+  eval_protocol: data/raw/ASVspoof2019_LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt
+  metadata_dir: data/metadata
+  train_metadata: data/metadata/train.csv
+  dev_metadata: data/metadata/dev.csv
+  eval_metadata: data/metadata/eval.csv
+  processed_dir: data/processed/logmel_64_4s
+  train_feature_dir: data/processed/logmel_64_4s/train
+  dev_feature_dir: data/processed/logmel_64_4s/dev
+  eval_feature_dir: data/processed/logmel_64_4s/eval
+  output_dir: outputs
+  checkpoint_dir: outputs/checkpoints/cnn_v2
+  saved_model_dir: outputs/saved_models/cnn_v2
+  tflite_dir: outputs/tflite/cnn_v2
+  log_dir: outputs/logs/cnn_v2
+  result_dir: outputs/results/cnn_v2
+audio:
+  sample_rate: 16000
+  duration: 4.0
+  target_samples: 64000
+  mono: true
+  pad_mode: constant
+  trim_mode: start
+feature:
+  type: logmel
+  n_mels: 64
+  n_fft: 512
+  hop_length: 256
+  win_length: 512
+  center: true
+  fmin: 20
+  fmax: 7600
+  power: 2.0
+  log_scale: true
+  log_ref: max
+  top_db: 80.0
+  expected_frames: 251
+  input_shape:
+  - 64
+  - 251
+  - 1
+  normalization:
+    enable: true
+    method: sample_zscore
+    eps: 1.0e-06
+  save_format: npy
+  storage_dtype: float16
+  train_dtype: float32
+labels:
+  real:
+    name: bonafide
+    value: 0
+  fake:
+    name: spoof
+    value: 1
+  num_classes: 2
+  task_type: binary_classification
+dataloader:
+  batch_size: 16
+  shuffle: true
+  shuffle_buffer_size: 4096
+  num_parallel_calls: AUTOTUNE
+  prefetch: AUTOTUNE
+  train_split: train
+  validation_split: dev
+  test_split: eval
+augmentation:
+  enable: false
+  spec_augment:
+    enable: false
+    time_masking: false
+    frequency_masking: false
+  noise_injection:
+    enable: false
+    snr_db_min: 20
+    snr_db_max: 30
+model:
+  name: CNN_V2_Medium_LogMel_AudioDeepfake
+  input_shape:
+  - 64
+  - 251
+  - 1
+  conv_blocks:
+  - filters: 32
+    kernel_size:
+    - 3
+    - 3
+    padding: same
+    use_bias: false
+    batch_norm: true
+    activation: relu
+    pooling: max
+    pool_size:
+    - 2
+    - 2
+  - filters: 64
+    kernel_size:
+    - 3
+    - 3
+    padding: same
+    use_bias: false
+    batch_norm: true
+    activation: relu
+    pooling: max
+    pool_size:
+    - 2
+    - 2
+  - filters: 128
+    kernel_size:
+    - 3
+    - 3
+    padding: same
+    use_bias: false
+    batch_norm: true
+    activation: relu
+    pooling: max
+    pool_size:
+    - 2
+    - 2
+  - filters: 256
+    kernel_size:
+    - 3
+    - 3
+    padding: same
+    use_bias: false
+    batch_norm: true
+    activation: relu
+    pooling: null
+    pool_size: null
+  global_pooling: global_average_pooling_2d
+  classifier:
+    dropout_1: 0.35
+    dense_units: 256
+    dense_activation: relu
+    dropout_2: 0.3
+    output_units: 1
+    output_activation: sigmoid
+training:
+  epochs: 30
+  optimizer:
+    name: adam
+    learning_rate: 0.0005
+  loss: binary_crossentropy
+  class_weight:
+    enable: true
+    method: balanced
+  threshold: 0.5
+  mixed_precision:
+    enable: false
+  save_best_only: true
+  monitor: val_roc_auc
+  monitor_mode: max
+callbacks:
+  model_checkpoint:
+    enable: true
+    filepath: outputs/checkpoints/cnn_v2/best_cnn_v2.keras
+    monitor: val_roc_auc
+    mode: max
+    save_best_only: true
+    save_weights_only: false
+    verbose: 1
+  early_stopping:
+    enable: true
+    monitor: val_roc_auc
+    mode: max
+    patience: 5
+    restore_best_weights: true
+    verbose: 1
+  reduce_lr_on_plateau:
+    enable: true
+    monitor: val_loss
+    mode: min
+    factor: 0.5
+    patience: 2
+    min_lr: 1.0e-06
+    verbose: 1
+  csv_logger:
+    enable: true
+    filename: outputs/logs/cnn_v2/training_log.csv
+    append: false
+evaluation:
+  metrics:
+  - accuracy
+  - f1_score
+  - roc_auc
+  - eer
+  - confusion_matrix
+  - classification_report
+  threshold: 0.5
+  save_results: true
+  result_files:
+    metrics_json: outputs/results/cnn_baseline/metrics.json
+    confusion_matrix_png: outputs/results/cnn_baseline/confusion_matrix.png
+    roc_curve_png: outputs/results/cnn_baseline/roc_curve.png
+    training_curve_png: outputs/results/cnn_baseline/training_curve.png
+deployment:
+  export_tflite:
+    enable: true
+    quantization: dynamic_range
+    output_path: outputs/tflite/cnn_baseline/cnn_baseline_dynamic_quant.tflite
+  export_onnx:
+    enable: false
+    output_path: outputs/saved_models/cnn_baseline/cnn_baseline.onnx
+debug:
+  enable: true
+  max_train_samples: 1000
+  max_dev_samples: 500
+  max_eval_samples: 500

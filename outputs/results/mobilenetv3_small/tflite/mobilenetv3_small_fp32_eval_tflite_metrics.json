@@ -1,0 +1,51 @@
+{
+  "threshold_used": 0.606,
+  "accuracy": 0.9009643864845516,
+  "precision": 0.930553240495204,
+  "recall": 0.961303653611346,
+  "f1": 0.9456785370548605,
+  "roc_auc": 0.9248090925887297,
+  "eer": 0.1459531872699263,
+  "eer_threshold": 0.8957741856575012,
+  "best_f1": 0.9472906552483189,
+  "best_f1_threshold": 0.4607968133352697,
+  "best_youden_threshold": 0.9553866386413574,
+  "best_youden_j": 0.7506632012358101,
+  "confusion_matrix": [
+    [
+      2772,
+      4583
+    ],
+    [
+      2472,
+      61410
+    ]
+  ],
+  "pred_counts": {
+    "bonafide_0": 5244,
+    "spoof_1": 65993
+  },
+  "label_counts": {
+    "bonafide_0": 7355,
+    "spoof_1": 63882
+  },
+  "score_stats": {
+    "min": 0.019987035542726517,
+    "max": 0.9999998807907104,
+    "mean": 0.9185495972633362,
+    "std": 0.16129963099956512
+  },
+  "tflite_size_mb": 2.4673,
+  "num_samples": 71237,
+  "total_time_sec_including_io": 761.8530502999929,
+  "total_inference_time_sec": 51.76773239977774,
+  "avg_inference_ms_per_sample": 0.7266972556365054,
+  "avg_total_ms_per_sample_including_io": 10.69462569030129,
+  "batch_size": 16,
+  "num_threads": 1,
+  "tflite_path": "outputs\\tflite\\mobilenetv3_small\\mobilenetv3_small_fp32.tflite",
+  "metadata_path": "data\\metadata_mobilenetv3\\eval.csv",
+  "config_path": "configs\\mobilenetv3_small.yaml",
+  "split": "eval",
+  "format": "fp32"
+}

@@ -1,0 +1,232 @@
+project:
+  name: audio_deepfake_detection
+  task: binary_classification
+  model_family: mobilenetv3
+  model_name: mobilenetv3_small
+  experiment_name: mobilenetv3_small_128x128x3_imagenet
+  seed: 42
+  description: MobileNetV3-Small pretrained ImageNet for audio deepfake detection
+    using precomputed Log-Mel image features.
+paths:
+  source_metadata_dir: data/metadata
+  source_train_metadata: data/metadata/train.csv
+  source_dev_metadata: data/metadata/dev.csv
+  source_eval_metadata: data/metadata/eval.csv
+  source_processed_dir: data/processed/logmel_64_4s
+  source_train_feature_dir: data/processed/logmel_64_4s/train
+  source_dev_feature_dir: data/processed/logmel_64_4s/dev
+  source_eval_feature_dir: data/processed/logmel_64_4s/eval
+  metadata_dir: data/metadata_mobilenetv3
+  train_metadata: data/metadata_mobilenetv3/train.csv
+  dev_metadata: data/metadata_mobilenetv3/dev.csv
+  eval_metadata: data/metadata_mobilenetv3/eval.csv
+  processed_dir: data/processed/mobilenetv3_128x128x3
+  train_feature_dir: data/processed/mobilenetv3_128x128x3/train
+  dev_feature_dir: data/processed/mobilenetv3_128x128x3/dev
+  eval_feature_dir: data/processed/mobilenetv3_128x128x3/eval
+  output_dir: outputs
+  checkpoint_dir: outputs/checkpoints/mobilenetv3_small
+  saved_model_dir: outputs/saved_models/mobilenetv3_small
+  tflite_dir: outputs/tflite/mobilenetv3_small
+  log_dir: outputs/logs/mobilenetv3_small
+  result_dir: outputs/results/mobilenetv3_small
+audio:
+  sample_rate: 16000
+  duration: 4.0
+  target_samples: 64000
+  mono: true
+  pad_mode: constant
+  trim_mode: start
+source_feature:
+  name: logmel_64_4s
+  input_shape:
+  - 64
+  - 251
+  - 1
+  n_mels: 64
+  expected_frames: 251
+  source_dtype: float16
+precompute:
+  enable: true
+  source_feature_column: feature_path
+  output_feature_column: feature_path
+  image_height: 128
+  image_width: 128
+  image_channels: 3
+  output_shape:
+  - 128
+  - 128
+  - 3
+  normalization:
+    method: sample_minmax
+    eps: 1.0e-06
+    output_min: 0.0
+    output_max: 1.0
+  resize:
+    method: bilinear
+    preserve_aspect_ratio: false
+  channel:
+    method: repeat
+    channels: 3
+  scale:
+    output_min: 0.0
+    output_max: 255.0
+  storage_dtype: float16
+  overwrite: false
+feature:
+  name: mobilenetv3_128x128x3
+  input_shape:
+  - 128
+  - 128
+  - 3
+  storage_dtype: float16
+  train_dtype: float32
+  value_range:
+    min: 0.0
+    max: 255.0
+labels:
+  negative_class:
+    id: 0
+    name: bonafide
+    description: Real / genuine audio
+  positive_class:
+    id: 1
+    name: spoof
+    description: Fake / spoofed / deepfake audio
+  positive_label: 1
+  threshold_default: 0.5
+dataloader:
+  batch_size: 16
+  shuffle_buffer_size: 4096
+  num_parallel_calls: AUTOTUNE
+  prefetch: AUTOTUNE
+  drop_remainder: false
+augmentation:
+  enable: false
+  random_gain:
+    enable: false
+    min_gain: 0.9
+    max_gain: 1.1
+  random_noise:
+    enable: false
+    std: 0.01
+  random_time_mask:
+    enable: false
+    max_width: 20
+  random_freq_mask:
+    enable: false
+    max_width: 8
+model:
+  name: MobileNetV3Small_LogMel_AudioDeepfake
+  input_shape:
+  - 128
+  - 128
+  - 3
+  backbone:
+    architecture: MobileNetV3Small
+    weights: imagenet
+    include_top: false
+    include_preprocessing: true
+    pooling: avg
+    alpha: 0.75
+    minimalistic: false
+    dropout_rate: 0.2
+    base_trainable: false
+  classifier:
+    dropout_1: 0.3
+    dense_units: 128
+    dense_activation: relu
+    dropout_2: 0.2
+    output_units: 1
+    output_activation: sigmoid
+training:
+  epochs: 20
+  stages:
+    stage_1:
+      enable: true
+      name: train_classifier_head
+      base_trainable: false
+      epochs: 15
+      learning_rate: 0.0003
+    stage_2:
+      enable: false
+      name: fine_tune_last_layers
+      base_trainable: true
+      fine_tune_from_layer: -30
+      epochs: 5
+      learning_rate: 3.0e-05
+  optimizer:
+    name: adam
+    learning_rate: 0.0003
+  loss: binary_crossentropy
+  metrics:
+  - accuracy
+  - roc_auc
+  class_weight:
+    enable: true
+    method: balanced
+  mixed_precision:
+    enable: false
+callbacks:
+  model_checkpoint:
+    enable: true
+    filepath: outputs/checkpoints/mobilenetv3_small/best_mobilenetv3_small.keras
+    monitor: val_roc_auc
+    mode: max
+    save_best_only: true
+    save_weights_only: false
+    verbose: 1
+  early_stopping:
+    enable: true
+    monitor: val_roc_auc
+    mode: max
+    patience: 3
+    restore_best_weights: true
+    verbose: 1
+  reduce_lr_on_plateau:
+    enable: true
+    monitor: val_loss
+    mode: min
+    factor: 0.5
+    patience: 2
+    min_lr: 1.0e-06
+    verbose: 1
+  csv_logger:
+    enable: true
+    filename: outputs/logs/mobilenetv3_small/training_log.csv
+    append: false
+evaluation:
+  threshold: 0.5
+  class_names:
+  - bonafide
+  - spoof
+  metrics:
+  - accuracy
+  - precision
+  - recall
+  - f1_score
+  - roc_auc
+  - eer
+  - confusion_matrix
+  - classification_report
+  save_predictions: true
+  save_confusion_matrix: true
+  save_roc_curve: true
+deployment:
+  target: android_cpu
+  tflite:
+    enable: true
+    quantization: dynamic_range
+    output_path: outputs/tflite/mobilenetv3_small/mobilenetv3_small_dynamic_quant.tflite
+  onnx:
+    enable: false
+    output_path: outputs/onnx/mobilenetv3_small/mobilenetv3_small.onnx
+debug:
+  enable: false
+  max_train_samples: 1000
+  max_dev_samples: 500
+  max_eval_samples: 500
+  precompute:
+    max_train_samples: 1000
+    max_dev_samples: 500
+    max_eval_samples: 500

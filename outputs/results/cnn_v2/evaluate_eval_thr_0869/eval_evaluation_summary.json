@@ -1,0 +1,39 @@
+{
+    "project": {
+        "name": "audio_deepfake_detection",
+        "task": "binary_classification",
+        "model_family": "cnn",
+        "model_name": "cnn_v2",
+        "experiment_name": "cnn_v2_medium_logmel_64_4s",
+        "seed": 42,
+        "description": "CNN v2 medium model for audio deepfake detection using Log-Mel Spectrogram."
+    },
+    "split": "eval",
+    "model_path": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\checkpoints\\cnn_v2\\best_cnn_v2.keras",
+    "output_dir": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\cnn_v2\\evaluate_eval_thr_0869",
+    "metrics": {
+        "accuracy": 0.9028313937981667,
+        "precision": 0.9239609384303918,
+        "recall": 0.9716038946808178,
+        "f1_score": 0.9471836896641181,
+        "roc_auc": 0.9116459123701711,
+        "eer": 0.15784484505135027,
+        "eer_threshold": 0.9478508830070496,
+        "threshold": 0.869,
+        "num_samples": 71237,
+        "label_counts": {
+            "0": 7355,
+            "1": 63882
+        },
+        "prediction_counts": {
+            "0": 4061,
+            "1": 67176
+        }
+    },
+    "files": {
+        "predictions_csv": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\cnn_v2\\evaluate_eval_thr_0869\\eval_predictions.csv",
+        "confusion_matrix_png": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\cnn_v2\\evaluate_eval_thr_0869\\eval_confusion_matrix.png",
+        "roc_curve_png": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\cnn_v2\\evaluate_eval_thr_0869\\eval_roc_curve.png",
+        "metrics_json": "E:\\MASTER\\DeAn\\audio_deepfake\\outputs\\results\\cnn_v2\\evaluate_eval_thr_0869\\eval_metrics.json"
+    }
+}

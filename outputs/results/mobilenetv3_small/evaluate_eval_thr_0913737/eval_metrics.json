@@ -1,0 +1,63 @@
+{
+    "threshold": 0.913737,
+    "num_samples": 71237,
+    "label_counts": {
+        "0": 7355,
+        "1": 63882
+    },
+    "prediction_counts": {
+        "0": 16656,
+        "1": 54581
+    },
+    "accuracy": 0.8456841248227747,
+    "precision": 0.9845001007676664,
+    "recall": 0.8411602642371873,
+    "f1_score": 0.9072030929488533,
+    "roc_auc": 0.9248091096153639,
+    "eer": 0.1459531872699263,
+    "eer_threshold": 0.8957744240760803,
+    "fpr_at_eer": 0.1458871515975527,
+    "fnr_at_eer": 0.14601922294229985,
+    "best_threshold_f1": 0.46,
+    "best_f1": 0.9472795525470745,
+    "best_threshold_youden": 0.9553862810134888,
+    "best_youden_j": 0.7506632012358101,
+    "confusion_matrix": [
+        [
+            6509,
+            846
+        ],
+        [
+            10147,
+            53735
+        ]
+    ],
+    "classification_report": {
+        "bonafide": {
+            "precision": 0.3907901056676273,
+            "recall": 0.8849762066621346,
+            "f1-score": 0.5421681729207447,
+            "support": 7355.0
+        },
+        "spoof": {
+            "precision": 0.9845001007676664,
+            "recall": 0.8411602642371873,
+            "f1-score": 0.9072030929488533,
+            "support": 63882.0
+        },
+        "accuracy": 0.8456841248227747,
+        "macro avg": {
+            "precision": 0.6876451032176468,
+            "recall": 0.8630682354496609,
+            "f1-score": 0.724685632934799,
+            "support": 71237.0
+        },
+        "weighted avg": {
+            "precision": 0.9232013794015114,
+            "recall": 0.8456841248227747,
+            "f1-score": 0.8695143660680645,
+            "support": 71237.0
+        }
+    },
+    "classification_report_text": "              precision    recall  f1-score   support\n\n    bonafide       0.39      0.88      0.54      7355\n       spoof       0.98      0.84      0.91     63882\n\n    accuracy                           0.85     71237\n   macro avg       0.69      0.86      0.72     71237\nweighted avg       0.92      0.85      0.87     71237\n"
+}
