@@ -29,3 +29,7 @@ outputs/logs/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints
+
+# Android benchmark binary
+android_bench/
+
