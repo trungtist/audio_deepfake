@@ -70,17 +70,17 @@ Trước khi thực hiện bất kỳ lệnh nào bên dưới, hãy đảm bả
 
 ---
 
-## 🔄 PIPELINE A: Mô hình CNN Baseline & CNN V2
+## 🔄 PIPELINE A: Mô hình CNN V2 (CNN Baseline)
 
 _(Dòng mô hình Custom CNN truyền thống)_
 
 Sử dụng cấu hình:
 
-- `configs/cnn_baseline.yaml` (Cho mô hình Baseline)
-- `configs/cnn_v2.yaml` (Cho phiên bản v2 nâng cấp)
+- `configs/cnn_v2.yaml` (Cho phiên bản v2 nâng cấp - Mặc định)
+- `configs/cnn_baseline.yaml` (Cho mô hình Baseline cũ)
 
 > [!NOTE]
-> Bạn có thể thay thế `configs/cnn_baseline.yaml` bằng `configs/cnn_v2.yaml` trong tất cả các câu lệnh dưới đây nếu muốn chạy với mô hình v2.
+> Tất cả các câu lệnh dưới đây sử dụng cấu hình mặc định `configs/cnn_v2.yaml`. Bạn có thể đổi sang `configs/cnn_baseline.yaml` nếu muốn kiểm tra mô hình Baseline cũ.
 
 ### Bước 1: Tạo Dữ Liệu Metadata (make_metadata.py)
 
@@ -88,11 +88,11 @@ Sử dụng cấu hình:
 
 - **Chạy đầy đủ (all splits):**
   ```powershell
-  python -m src.data.make_metadata --config configs/cnn_baseline.yaml --split all
+  python -m src.data.make_metadata --config configs/cnn_v2.yaml --split all
   ```
 - **Chạy debug nhanh (số mẫu nhỏ):**
   ```powershell
-  python -m src.data.make_metadata --config configs/cnn_baseline.yaml --split all --debug
+  python -m src.data.make_metadata --config configs/cnn_v2.yaml --split all --debug
   ```
 - **Đầu ra (Outputs):**
   Các file CSV được tạo trong thư mục `data/metadata/` bao gồm: `train.csv`, `dev.csv`, `eval.csv`.
@@ -103,11 +103,11 @@ Trích xuất đặc trưng âm thanh từ file `.flac` sang định dạng `.np
 
 - **Chạy đầy đủ:**
   ```powershell
-  python -m src.features.logmel --config configs/cnn_baseline.yaml --split all
+  python -m src.features.logmel --config configs/cnn_v2.yaml --split all
   ```
 - **Chạy debug nhanh (100 mẫu):**
   ```powershell
-  python -m src.features.logmel --config configs/cnn_baseline.yaml --split train --max-samples 100
+  python -m src.features.logmel --config configs/cnn_v2.yaml --split train --max-samples 100
   ```
 - **Kiểm tra nhanh kích thước file `.npy` sau khi xuất:**
   ```powershell
@@ -122,11 +122,11 @@ Kiểm tra xem dữ liệu `.npy` có được nạp và chuyển sang định d
 
 - **Kiểm tra loader trên tập dev:**
   ```powershell
-  python -m src.data.dataset_loader --config configs/cnn_baseline.yaml --split dev --max-samples 32
+  python -m src.data.dataset_loader --config configs/cnn_v2.yaml --split dev --max-samples 32
   ```
 - **Xác thực toàn bộ các file `.npy` đã tạo:**
   ```powershell
-  python -m src.data.dataset_loader --config configs/cnn_baseline.yaml --split train --validate-files
+  python -m src.data.dataset_loader --config configs/cnn_v2.yaml --split train --validate-files
   ```
 
 ### Bước 4: Kiểm Tra Kiến Trúc Mô Hình (cnn_baseline.py)
@@ -135,7 +135,7 @@ Xây dựng mô hình ảo, in tóm tắt tham số (model summary) và kiểm t
 
 - **Kiểm tra và In Summary:**
   ```powershell
-  python -m src.models.cnn_baseline --config configs/cnn_baseline.yaml --summary --compile
+  python -m src.models.cnn_baseline --config configs/cnn_v2.yaml --summary --compile
   ```
 
 ### Bước 5: Huấn Luyện Mô Hình (train_cnn.py)
@@ -144,26 +144,26 @@ Tiến hành train mô hình CNN trên tập dữ liệu đã chuẩn bị.
 
 - **Chạy huấn luyện đầy đủ:**
   ```powershell
-  python -m src.training.train_cnn --config configs/cnn_baseline.yaml
+  python -m src.training.train_cnn --config configs/cnn_v2.yaml
   ```
 - **Chạy train debug nhanh:**
   ```powershell
-  python -m src.training.train_cnn --config configs/cnn_baseline.yaml --debug
+  python -m src.training.train_cnn --config configs/cnn_v2.yaml --debug
   ```
 - **Đầu ra (Outputs):**
-  - Mô hình tốt nhất lưu tại: `outputs/checkpoints/cnn_baseline/best_cnn_baseline.keras`
-  - Mô hình hoàn tất epoch cuối: `outputs/saved_models/cnn_baseline/cnn_baseline_final.keras`
-  - Nhật ký huấn luyện: `outputs/logs/cnn_baseline/training_log.csv`
+  - Mô hình tốt nhất lưu tại: `outputs/checkpoints/cnn_v2/best_cnn_v2.keras`
+  - Mô hình hoàn tất epoch cuối: `outputs/saved_models/cnn_v2/cnn_v2_final.keras`
+  - Nhật ký huấn luyện: `outputs/logs/cnn_v2/training_log.csv`
 
 ### Bước 6: Đánh Giá Mô Hình Keras (evaluate.py)
 
 1. **Chạy đánh giá trên tập `dev` để tìm ngưỡng phân loại (threshold) tối ưu:**
    ```powershell
-   python -m src.evaluation.evaluate --config configs/cnn_baseline.yaml --split dev
+   python -m src.evaluation.evaluate --config configs/cnn_v2.yaml --split dev
    ```
 2. **Dùng ngưỡng tối ưu vừa tìm được ở tập dev (ví dụ: `0.956`) chạy đánh giá cuối trên tập `eval`:**
    ```powershell
-   python -m src.evaluation.evaluate --config configs/cnn_baseline.yaml --split eval --threshold 0.956 --output-dir outputs/results/cnn_baseline/evaluate_eval_thr_0956
+   python -m src.evaluation.evaluate --config configs/cnn_v2.yaml --split eval --threshold 0.956 --output-dir outputs/results/cnn_v2/evaluate_eval_thr_0956
    ```
 
 ### Bước 7: Xuất Mô Hình Sang Định Dạng TFLite (export_tflite.py)
@@ -172,10 +172,10 @@ Chuyển đổi file `.keras` sang định dạng gọn nhẹ dùng cho deploy d
 
 - **Xuất mô hình:**
   ```powershell
-  python -m src.deployment.export_tflite --config configs/cnn_baseline.yaml --formats fp32 fp16 dynamic
+  python -m src.deployment.export_tflite --config configs/cnn_v2.yaml --formats fp32 fp16 dynamic
   ```
 - **Đầu ra (Outputs):**
-  Các file mô hình TFLite tại thư mục: `outputs/tflite/cnn_baseline/`.
+  Các file mô hình TFLite tại thư mục: `outputs/tflite/cnn_v2/`.
 
 ### Bước 8: Đánh Giá Mô Hình TFLite (evaluate_tflite.py)
 
@@ -183,11 +183,11 @@ Kiểm tra độ chính xác và tốc độ của mô hình TFLite đã xuất 
 
 - **Đánh giá phiên bản FP16:**
   ```powershell
-  python -m src.deployment.evaluate_tflite --config configs/cnn_baseline.yaml --split eval --format fp16 --threshold 0.956
+  python -m src.deployment.evaluate_tflite --config configs/cnn_v2.yaml --split eval --format fp16 --threshold 0.956
   ```
 - **Đánh giá phiên bản FP32:**
   ```powershell
-  python -m src.deployment.evaluate_tflite --config configs/cnn_baseline.yaml --split eval --format fp32 --threshold 0.956
+  python -m src.deployment.evaluate_tflite --config configs/cnn_v2.yaml --split eval --format fp32 --threshold 0.956
   ```
 
 ---
@@ -287,6 +287,56 @@ Sử dụng cấu hình: `configs/mobilenetv3_small.yaml`
   ```powershell
   python -m src.deployment.evaluate_tflite --config configs/mobilenetv3_small.yaml --split eval --format fp32 --threshold 0.606
   ```
+
+---
+
+## 🤖 Đánh Giá Hiệu Năng Trên Thiết Bị Android (Android Benchmarking)
+
+Bạn có thể đo độ trễ (latency) và bộ nhớ tiêu thụ khi chạy mô hình `.tflite` trực tiếp trên thiết bị Android bằng công cụ benchmark trong thư mục `android_bench/`.
+
+### Điều kiện tiên quyết:
+- Điện thoại Android đã bật **Developer Options (Tùy chọn nhà phát triển)** và kích hoạt **USB Debugging**.
+- Máy tính của bạn đã được cấu hình bộ công cụ **ADB (Android Debug Bridge)** và kết nối thành công với thiết bị (kiểm tra bằng lệnh `adb devices` trong terminal).
+
+### Các bước thực hiện:
+
+#### Bước 1: Đẩy công cụ benchmark và mô hình TFLite lên thiết bị
+Đẩy tệp thực thi benchmark cùng mô hình `.tflite` (đã xuất ở các bước trước) vào thư mục tạm `/data/local/tmp/` trên Android qua cổng ADB:
+```powershell
+# Đẩy tệp thực thi benchmark
+adb push android_bench/android_aarch64_benchmark_model /data/local/tmp/
+
+# Đẩy mô hình TFLite (ví dụ model fp16 của CNN V2)
+adb push outputs/tflite/cnn_v2/cnn_v2_fp16.tflite /data/local/tmp/
+```
+
+#### Bước 2: Cấp quyền thực thi cho tệp tin benchmark
+Cấp quyền chạy chương trình cho tệp nhị phân vừa đẩy lên:
+```powershell
+adb shell chmod +x /data/local/tmp/android_aarch64_benchmark_model
+```
+
+#### Bước 3: Chạy lệnh đo đạc hiệu năng (Benchmark)
+Bạn có thể chọn chạy trên CPU thông thường hoặc kích hoạt các bộ tăng tốc phần cứng phần cứng (GPU/NNAPI):
+
+* **Chạy benchmark trên CPU (sử dụng 4 luồng xử lý):**
+  ```powershell
+  adb shell /data/local/tmp/android_aarch64_benchmark_model --graph=/data/local/tmp/cnn_v2_fp16.tflite --num_threads=4
+  ```
+
+* **Chạy tăng tốc bằng GPU Delegate (nếu GPU của thiết bị hỗ trợ):**
+  ```powershell
+  adb shell /data/local/tmp/android_aarch64_benchmark_model --graph=/data/local/tmp/cnn_v2_fp16.tflite --use_gpu=true
+  ```
+
+* **Chạy tăng tốc bằng NNAPI Delegate (sử dụng NPU/DSP của thiết bị):**
+  ```powershell
+  adb shell /data/local/tmp/android_aarch64_benchmark_model --graph=/data/local/tmp/cnn_v2_fp16.tflite --use_nnapi=true
+  ```
+
+#### Bước 4: Đọc kết quả
+Kết quả benchmark hiển thị trực tiếp trên màn hình terminal. Hãy quan sát phần **`Inference timings in us`** (độ trễ tính bằng micro-giây):
+- `Inference (avg)`: Thời gian suy luận trung bình cho mỗi mẫu âm thanh (chia giá trị này cho `1000` để đổi sang mili-giây - `ms`).
 
 ---
 
