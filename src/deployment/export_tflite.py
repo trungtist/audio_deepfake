@@ -20,6 +20,15 @@ import yaml
 
 
 def load_yaml(path: str | Path) -> Dict[str, Any]:
+    """
+    Đọc và parse file YAML thành dictionary.
+    
+    Args:
+        path (str | Path): Đường dẫn tới file YAML.
+        
+    Returns:
+        Dict[str, Any]: Dictionary chứa dữ liệu từ file config.
+    """
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"Config file not found: {path}")
@@ -29,6 +38,17 @@ def load_yaml(path: str | Path) -> Dict[str, Any]:
 
 
 def deep_get(data: Dict[str, Any], keys: Iterable[str], default: Any = None) -> Any:
+    """
+    Lấy giá trị từ dictionary lồng nhau (nested dictionary) một cách an toàn.
+    
+    Args:
+        data (Dict[str, Any]): Dictionary chứa dữ liệu gốc.
+        keys (Iterable[str]): Danh sách các key theo thứ tự lồng nhau.
+        default (Any, optional): Giá trị trả về mặc định nếu không tìm thấy key. Mặc định là None.
+        
+    Returns:
+        Any: Giá trị tìm được hoặc giá trị mặc định.
+    """
     cur: Any = data
     for key in keys:
         if not isinstance(cur, dict) or key not in cur:
@@ -38,6 +58,15 @@ def deep_get(data: Dict[str, Any], keys: Iterable[str], default: Any = None) -> 
 
 
 def slugify(value: str) -> str:
+    """
+    Chuyển đổi chuỗi thành định dạng an toàn cho tên file (chỉ chứa chữ cái thường, số, dấu gạch dưới).
+    
+    Args:
+        value (str): Chuỗi đầu vào.
+        
+    Returns:
+        str: Chuỗi sau khi đã được chuẩn hóa.
+    """
     value = value.strip().lower()
     value = re.sub(r"[^a-z0-9_\-]+", "_", value)
     value = re.sub(r"_+", "_", value)
@@ -45,6 +74,16 @@ def slugify(value: str) -> str:
 
 
 def infer_model_id(cfg: Dict[str, Any], config_path: Path) -> str:
+    """
+    Tự động suy luận ID/tên của mô hình dựa trên nội dung file config YAML.
+    
+    Args:
+        cfg (Dict[str, Any]): Nội dung file config đã được parse.
+        config_path (Path): Đường dẫn tới file config để dùng làm tên dự phòng (fallback).
+        
+    Returns:
+        str: ID của mô hình (đã được chuẩn hóa dạng slug).
+    """
     candidates = [
         deep_get(cfg, ["project", "model_name"]),
         deep_get(cfg, ["project", "name"]),
@@ -58,6 +97,16 @@ def infer_model_id(cfg: Dict[str, Any], config_path: Path) -> str:
 
 
 def infer_checkpoint_path(cfg: Dict[str, Any], model_id: str) -> Optional[Path]:
+    """
+    Tự động tìm kiếm đường dẫn đến file checkpoint (.keras) tốt nhất dựa trên config.
+    
+    Args:
+        cfg (Dict[str, Any]): Nội dung file config.
+        model_id (str): ID của mô hình để tìm kiếm trong cấu trúc thư mục mặc định.
+        
+    Returns:
+        Optional[Path]: Đường dẫn đến file checkpoint nếu tìm thấy, ngược lại trả về None.
+    """
     direct_candidates = [
         deep_get(cfg, ["training", "checkpoint_path"]),
         deep_get(cfg, ["training", "best_model_path"]),
@@ -108,16 +157,37 @@ def infer_checkpoint_path(cfg: Dict[str, Any], model_id: str) -> Optional[Path]:
 
 
 def get_file_size_mb(path: str | Path) -> float:
+    """Tính toán kích thước của file theo đơn vị Megabytes (MB)."""
     return Path(path).stat().st_size / (1024 * 1024)
 
 
 def load_keras_model(model_path: Path) -> tf.keras.Model:
+    """
+    Load mô hình Keras từ file. Tránh biên dịch lại (compile=False) vì chỉ phục vụ mục đích export.
+    
+    Args:
+        model_path (Path): Đường dẫn tới file mô hình .keras.
+        
+    Returns:
+        tf.keras.Model: Đối tượng mô hình TensorFlow Keras.
+    """
     if not model_path.exists():
         raise FileNotFoundError(f"Keras model not found: {model_path}")
     return tf.keras.models.load_model(model_path, compile=False)
 
 
 def make_converter(model: tf.keras.Model, export_type: str, allow_select_tf_ops: bool = False) -> tf.lite.TFLiteConverter:
+    """
+    Khởi tạo TFLiteConverter từ mô hình Keras và cấu hình các tùy chọn lượng tử hóa (quantization).
+    
+    Args:
+        model (tf.keras.Model): Mô hình Keras đầu vào cần chuyển đổi.
+        export_type (str): Định dạng lượng tử hóa mong muốn ('fp32', 'fp16', 'dynamic').
+        allow_select_tf_ops (bool): Cờ cho phép dùng các Ops gốc của TensorFlow nếu TFLite built-in bị thiếu.
+        
+    Returns:
+        tf.lite.TFLiteConverter: Đối tượng converter đã được thiết lập các thông số.
+    """
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
 
     if export_type == "fp32":
@@ -140,6 +210,18 @@ def make_converter(model: tf.keras.Model, export_type: str, allow_select_tf_ops:
 
 
 def export_one(model: tf.keras.Model, output_path: Path, export_type: str, allow_select_tf_ops: bool = False) -> Dict[str, Any]:
+    """
+    Thực hiện tiến trình chuyển đổi mô hình cho một định dạng duy nhất và lưu file .tflite ra đĩa.
+    
+    Args:
+        model (tf.keras.Model): Mô hình Keras đã nạp sẵn.
+        output_path (Path): Đường dẫn đích để lưu file TFLite.
+        export_type (str): Định dạng lượng tử hóa.
+        allow_select_tf_ops (bool): Cho phép chọn TF ops thay thế.
+        
+    Returns:
+        Dict[str, Any]: Từ điển chứa thông tin tóm tắt về loại xuất, đường dẫn lưu và dung lượng file MB.
+    """
     output_path.parent.mkdir(parents=True, exist_ok=True)
     converter = make_converter(model, export_type, allow_select_tf_ops)
     tflite_model = converter.convert()
@@ -152,6 +234,7 @@ def export_one(model: tf.keras.Model, output_path: Path, export_type: str, allow
 
 
 def parse_args() -> argparse.Namespace:
+    """Phân tích các đối số dòng lệnh (arguments) do người dùng truyền vào khi chạy file."""
     parser = argparse.ArgumentParser(description="Export trained Keras model to TensorFlow Lite.")
     parser.add_argument("--config", required=True, help="Path to YAML config.")
     parser.add_argument("--model-path", default=None, help="Path to trained .keras checkpoint.")
@@ -162,6 +245,14 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """
+    Hàm thực thi chính:
+    1. Đọc argument & config.
+    2. Xác định mô hình (.keras) đích.
+    3. Trích xuất mô hình và thông tin cấu hình mạng.
+    4. Vòng lặp chuyển đổi cho từng định dạng mong muốn.
+    5. Lưu tổng kết dưới dạng file JSON manifest.
+    """
     args = parse_args()
     config_path = Path(args.config)
     cfg = load_yaml(config_path)

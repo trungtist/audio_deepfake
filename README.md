@@ -295,13 +295,16 @@ Sử dụng cấu hình: `configs/mobilenetv3_small.yaml`
 Bạn có thể đo độ trễ (latency) và bộ nhớ tiêu thụ khi chạy mô hình `.tflite` trực tiếp trên thiết bị Android bằng công cụ benchmark trong thư mục `android_bench/`.
 
 ### Điều kiện tiên quyết:
+
 - Điện thoại Android đã bật **Developer Options (Tùy chọn nhà phát triển)** và kích hoạt **USB Debugging**.
 - Máy tính của bạn đã được cấu hình bộ công cụ **ADB (Android Debug Bridge)** và kết nối thành công với thiết bị (kiểm tra bằng lệnh `adb devices` trong terminal).
 
 ### Các bước thực hiện:
 
 #### Bước 1: Đẩy công cụ benchmark và mô hình TFLite lên thiết bị
+
 Đẩy tệp thực thi benchmark cùng mô hình `.tflite` (đã xuất ở các bước trước) vào thư mục tạm `/data/local/tmp/` trên Android qua cổng ADB:
+
 ```powershell
 # Đẩy tệp thực thi benchmark
 adb push android_bench/android_aarch64_benchmark_model /data/local/tmp/
@@ -311,31 +314,38 @@ adb push outputs/tflite/cnn_v2/cnn_v2_fp16.tflite /data/local/tmp/
 ```
 
 #### Bước 2: Cấp quyền thực thi cho tệp tin benchmark
+
 Cấp quyền chạy chương trình cho tệp nhị phân vừa đẩy lên:
+
 ```powershell
 adb shell chmod +x /data/local/tmp/android_aarch64_benchmark_model
 ```
 
 #### Bước 3: Chạy lệnh đo đạc hiệu năng (Benchmark)
+
 Bạn có thể chọn chạy trên CPU thông thường hoặc kích hoạt các bộ tăng tốc phần cứng phần cứng (GPU/NNAPI):
 
-* **Chạy benchmark trên CPU (sử dụng 4 luồng xử lý):**
+- **Chạy benchmark trên CPU (sử dụng 4 luồng xử lý):**
+
   ```powershell
   adb shell /data/local/tmp/android_aarch64_benchmark_model --graph=/data/local/tmp/cnn_v2_fp16.tflite --num_threads=4
   ```
 
-* **Chạy tăng tốc bằng GPU Delegate (nếu GPU của thiết bị hỗ trợ):**
+- **Chạy tăng tốc bằng GPU Delegate (nếu GPU của thiết bị hỗ trợ):**
+
   ```powershell
   adb shell /data/local/tmp/android_aarch64_benchmark_model --graph=/data/local/tmp/cnn_v2_fp16.tflite --use_gpu=true
   ```
 
-* **Chạy tăng tốc bằng NNAPI Delegate (sử dụng NPU/DSP của thiết bị):**
+- **Chạy tăng tốc bằng NNAPI Delegate (sử dụng NPU/DSP của thiết bị):**
   ```powershell
   adb shell /data/local/tmp/android_aarch64_benchmark_model --graph=/data/local/tmp/cnn_v2_fp16.tflite --use_nnapi=true
   ```
 
 #### Bước 4: Đọc kết quả
+
 Kết quả benchmark hiển thị trực tiếp trên màn hình terminal. Hãy quan sát phần **`Inference timings in us`** (độ trễ tính bằng micro-giây):
+
 - `Inference (avg)`: Thời gian suy luận trung bình cho mỗi mẫu âm thanh (chia giá trị này cho `1000` để đổi sang mili-giây - `ms`).
 
 ---
